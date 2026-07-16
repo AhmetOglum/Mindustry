@@ -1,0 +1,39 @@
+name: Mindustry Derleme Pipeline
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Kodları GitHub sunucusuna çek
+    - name: Depoyu Klonla
+      uses: actions/checkout@v4
+
+    # 2. Java Ortamını Hazırla (Mindustry için Java 17 önerilir)
+    - name: Java 17 Kurulumu
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+        cache: 'gradle' # Bağımlılıkları önbelleğe alarak sonraki derlemeleri hızlandırır
+
+    # 3. Gradle Çalıştırma İzinlerini Ayarla
+    - name: Gradle İzinlerini Düzenle
+      run: chmod +x gradlew
+
+    # 4. Mindustry Desktop/Jar Dosyasını Derle
+    - name: Gradle ile Derle
+      run: ./gradlew desktop:dist
+
+    # 5. Derlenen .jar Dosyasını Çıktı (Artifact) Olarak Kaydet
+    - name: Derleme Çıktısını Sunucuya Yükle
+      uses: actions/upload-artifact@v4
+      with:
+        name: Mindustry-Desktop-Build
+        path: desktop/build/libs/*.jar
